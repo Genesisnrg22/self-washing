@@ -1,0 +1,16 @@
+# depslib dependency file v1.0
+1780161919 source:c:\workspace\sistemaautolavado\sistemaautolavado\main.cpp
+	<iostream>
+	<vector>
+	"estructuras.h"
+	"funciones.h"
+
+1780159726 c:\workspace\sistemaautolavado\sistemaautolavado\estructuras.h
+	<string>
+
+1780162916 c:\workspace\sistemaautolavado\sistemaautolavado\funciones.h
+	<iostream>
+	<vector>
+	<fstream>
+	"estructuras.h"
+
