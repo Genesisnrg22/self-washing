@@ -1,0 +1,17 @@
+[
+  {
+    "id": 12654345,
+    "nombre": "Alejandro Fernandez",
+    "telefono": "+584141122345"
+  },
+  {
+    "id": 8765543,
+    "nombre": "Pedro Gonzalez",
+    "telefono": "+584127776543"
+  },
+  {
+    "id": 9876543,
+    "nombre": "Eduardo Rodriguez",
+    "telefono": "+584123456789"
+  }
+]

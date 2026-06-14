@@ -4,11 +4,11 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <cctype>
 #include "estructuras.h"
 
 using namespace std;
 
-// --- CONSTANTES DE COLOR ANSI ---
 const string RESET = "\033[0m";
 const string ROJO = "\033[31m";
 const string VERDE = "\033[32m";
@@ -16,20 +16,42 @@ const string AMARILLO = "\033[33m";
 const string AZUL = "\033[34m";
 const string CYAN = "\033[36m";
 
-// --- FUNCIÓN PARA LIMPIAR PANTALLA ---
 void limpiarPantalla()
 {
     cout << "\033[2J\033[1;1H";
 }
 
-// --- FUNCIÓN PARA PAUSAR ---
 void esperarEnter()
 {
     cout << "\nPresione " << AMARILLO << "[ENTER]" << RESET << " para continuar...";
-    cin.get(); 
+    cin.get();
 }
 
-// --- VALIDACIONES ---
+bool esNumeroValido(string str)
+{
+    if (str.empty())
+        return false;
+    for (size_t i = 0; i < str.length(); i++)
+    {
+        if (!isdigit(str[i]))
+            return false;
+    }
+    return true;
+}
+
+bool esTextoValido(string str)
+{
+    if (str.empty())
+        return false;
+    for (size_t i = 0; i < str.length(); i++)
+    {
+
+        if (!isalpha(str[i]) && !isspace(str[i]))
+            return false;
+    }
+    return true;
+}
+
 bool existeCliente(const vector<Cliente> &listaClientes, int idBuscar)
 {
     for (size_t i = 0; i < listaClientes.size(); i++)
@@ -60,17 +82,27 @@ bool existeLavador(const vector<Lavador> &listaLavadores, int idBuscar)
     return false;
 }
 
-// --- CLIENTES ---
 void agregarCliente(vector<Cliente> &listaClientes)
 {
     limpiarPantalla();
+    string entradaId;
     int idBuscar;
+
     cout << CYAN << "========================================" << RESET << endl;
     cout << CYAN << "       REGISTRAR NUEVO CLIENTE          " << RESET << endl;
     cout << CYAN << "========================================" << RESET << endl;
-    cout << "Ingrese la cedula del cliente: ";
-    cin >> idBuscar;
-    cin.ignore();
+
+    do
+    {
+        cout << "Ingrese la cedula del cliente (Solo numeros): ";
+        getline(cin, entradaId);
+        if (!esNumeroValido(entradaId))
+        {
+            cout << ROJO << "¡ERROR: La cedula debe contener unicamente numeros!" << RESET << endl;
+        }
+    } while (!esNumeroValido(entradaId));
+
+    idBuscar = stoi(entradaId);
 
     if (existeCliente(listaClientes, idBuscar))
     {
@@ -78,14 +110,24 @@ void agregarCliente(vector<Cliente> &listaClientes)
         esperarEnter();
         return;
     }
+
     Cliente nuevoCliente;
     nuevoCliente.id = idBuscar;
-    cout << "Ingrese el Nombre Completo: ";
-    getline(cin, nuevoCliente.nombre);
+
+    do
+    {
+        cout << "Ingrese el Nombre Completo (Solo letras): ";
+        getline(cin, nuevoCliente.nombre);
+        if (!esTextoValido(nuevoCliente.nombre))
+        {
+            cout << ROJO << "¡ERROR: El nombre no puede contener numeros ni caracteres especiales!" << RESET << endl;
+        }
+    } while (!esTextoValido(nuevoCliente.nombre));
+
     cout << "Ingrese el Telefono: ";
     getline(cin, nuevoCliente.telefono);
-    listaClientes.push_back(nuevoCliente);
 
+    listaClientes.push_back(nuevoCliente);
     cout << VERDE << "\n¡Cliente registrado con exito!" << RESET << endl;
     esperarEnter();
 }
@@ -134,28 +176,46 @@ void cargarClientesDesdeArchivo(vector<Cliente> &listaClientes)
     archivo.close();
 }
 
-// --- VEHÍCULOS ---
 void agregarVehiculo(vector<Vehiculo> &listaVehiculos, const vector<Cliente> &listaClientes)
 {
+
+    limpiarPantalla();
     string placaBuscar;
-    cout << "\n--- Registrar Nuevo Vehiculo ---" << endl;
+    cout << CYAN << "========================================" << RESET << endl;
+    cout << CYAN << "       REGISTRAR NUEVO VEHICULO         " << RESET << endl;
+    cout << CYAN << "========================================" << RESET << endl;
     cout << "Ingrese la Placa: ";
     getline(cin, placaBuscar);
 
     if (existeVehiculo(listaVehiculos, placaBuscar))
     {
-        cout << "¡ERROR: La placa " << placaBuscar << " ya existe!" << endl;
+        cout << ROJO << "¡ERROR: La placa " << placaBuscar << " ya existe!" << RESET << endl;
+        esperarEnter();
         return;
     }
+
+    string entradaCedulaDueno;
     int cedulaDuenoBuscar;
-    cout << "Ingrese la cedula del Dueno: ";
-    cin >> cedulaDuenoBuscar;
-    cin.ignore();
+
+    do
+    {
+        cout << "Ingrese la cedula del Dueno (Solo numeros): ";
+        getline(cin, entradaCedulaDueno);
+        if (!esNumeroValido(entradaCedulaDueno))
+        {
+            cout << ROJO << "¡ERROR: La cedula debe contener unicamente numeros!" << RESET << endl;
+        }
+    } while (!esNumeroValido(entradaCedulaDueno));
+
+    cedulaDuenoBuscar = stoi(entradaCedulaDueno);
+
     if (!existeCliente(listaClientes, cedulaDuenoBuscar))
     {
-        cout << "¡ERROR: El cliente no existe!" << endl;
+        cout << ROJO << "¡ERROR: El cliente con cedula " << cedulaDuenoBuscar << " no esta registrado!" << RESET << endl;
+        esperarEnter();
         return;
     }
+
     Vehiculo nuevoCarro;
     nuevoCarro.placa = placaBuscar;
     nuevoCarro.idDueno = cedulaDuenoBuscar;
@@ -163,8 +223,9 @@ void agregarVehiculo(vector<Vehiculo> &listaVehiculos, const vector<Cliente> &li
     getline(cin, nuevoCarro.modelo);
     cout << "Ingrese el Color: ";
     getline(cin, nuevoCarro.color);
+
     listaVehiculos.push_back(nuevoCarro);
-    cout << "¡Vehiculo registrado!" << endl;
+    cout << VERDE << "\n¡Vehiculo registrado con exito!" << RESET << endl;
 }
 
 void listarVehiculos(const vector<Vehiculo> &listaVehiculos)
@@ -212,25 +273,50 @@ void cargarVehiculosDesdeArchivo(vector<Vehiculo> &listaVehiculos)
     archivo.close();
 }
 
-// --- LAVADORES ---
 void agregarLavador(vector<Lavador> &listaLavadores)
 {
+    limpiarPantalla();
+    string entradaId;
     int idBuscar;
-    cout << "\n--- Registrar Nuevo Lavador ---" << endl;
-    cout << "Ingrese el ID del Lavador: ";
-    cin >> idBuscar;
-    cin.ignore();
+    cout << CYAN << "========================================" << RESET << endl;
+    cout << CYAN << "       REGISTRAR NUEVO LAVADOR          " << RESET << endl;
+    cout << CYAN << "========================================" << RESET << endl;
+
+    do
+    {
+        cout << "Ingrese el ID del Lavador (Solo numeros): ";
+        getline(cin, entradaId);
+        if (!esNumeroValido(entradaId))
+        {
+            cout << ROJO << "¡ERROR: El ID debe contener unicamente numeros!" << RESET << endl;
+        }
+    } while (!esNumeroValido(entradaId));
+
+    idBuscar = stoi(entradaId);
+
     if (existeLavador(listaLavadores, idBuscar))
     {
-        cout << "¡ERROR: El lavador ya existe!" << endl;
+        cout << ROJO << "¡ERROR: El lavador con ID " << idBuscar << " ya existe!" << RESET << endl;
+        esperarEnter();
         return;
     }
+
     Lavador nuevoLavador;
+nuevoFundador:
     nuevoLavador.id = idBuscar;
-    cout << "Ingrese el Nombre: ";
-    getline(cin, nuevoLavador.nombre);
+
+    do
+    {
+        cout << "Ingrese el Nombre (Solo letras): ";
+        getline(cin, nuevoLavador.nombre);
+        if (!esTextoValido(nuevoLavador.nombre))
+        {
+            cout << ROJO << "¡ERROR: El nombre no puede contener numeros!" << RESET << endl;
+        }
+    } while (!esTextoValido(nuevoLavador.nombre));
+
     listaLavadores.push_back(nuevoLavador);
-    cout << "¡Lavador registrado!" << endl;
+    cout << VERDE << "¡Lavador registrado con exito!" << RESET << endl;
 }
 
 void listarLavadores(const vector<Lavador> &listaLavadores)
@@ -276,34 +362,60 @@ void cargarLavadoresDesdeArchivo(vector<Lavador> &listaLavadores)
     archivo.close();
 }
 
-// --- SERVICIOS ---
 void registrarServicio(vector<Servicio> &listaServicios, const vector<Vehiculo> &listaVehiculos, const vector<Lavador> &listaLavadores)
 {
+    limpiarPantalla();
     Servicio nuevoServicio;
-    cout << "\n--- Registrar Nuevo Servicio ---" << endl;
+    cout << CYAN << "========================================" << RESET << endl;
+    cout << CYAN << "       REGISTRAR NUEVO SERVICIO         " << RESET << endl;
+    cout << CYAN << "========================================" << RESET << endl;
     cout << "Ingrese la Placa del Vehiculo: ";
     getline(cin, nuevoServicio.placaVehiculo);
     if (!existeVehiculo(listaVehiculos, nuevoServicio.placaVehiculo))
     {
-        cout << "¡ERROR: El vehiculo no existe!" << endl;
+        cout << ROJO << "¡ERROR: El vehiculo no existe!" << RESET << endl;
+        esperarEnter();
         return;
     }
+
+    string entradaIdLavador;
     cout << "Ingrese el ID del Lavador: ";
-    cin >> nuevoServicio.idLavador;
-    cin.ignore();
+    getline(cin, entradaIdLavador);
+    if (!esNumeroValido(entradaIdLavador))
+    {
+        cout << ROJO << "¡ERROR: El ID debe ser numerico!" << RESET << endl;
+        esperarEnter();
+        return;
+    }
+    nuevoServicio.idLavador = stoi(entradaIdLavador);
+
     if (!existeLavador(listaLavadores, nuevoServicio.idLavador))
     {
-        cout << "¡ERROR: El lavador no existe!" << endl;
+        cout << ROJO << "¡ERROR: El lavador no existe!" << RESET << endl;
+        esperarEnter();
         return;
     }
+
     cout << "Ingrese la Fecha (DD/MM/AAAA): ";
     getline(cin, nuevoServicio.fecha);
+
+    string entradaCosto;
     cout << "Ingrese el Costo: ";
-    cin >> nuevoServicio.costo;
-    cin.ignore();
+    getline(cin, entradaCosto);
+    try
+    {
+        nuevoServicio.costo = stof(entradaCosto);
+    }
+    catch (...)
+    {
+        cout << ROJO << "¡ERROR: Costo invalido!" << RESET << endl;
+        esperarEnter();
+        return;
+    }
 
     listaServicios.push_back(nuevoServicio);
-    cout << "¡Servicio registrado con exito!" << endl;
+    cout << VERDE << "¡Servicio registrado con exito!" << RESET << endl;
+    esperarEnter();
 }
 
 void listarServicios(const vector<Servicio> &listaServicios)
@@ -352,30 +464,31 @@ void cargarServiciosDesdeArchivo(vector<Servicio> &listaServicios)
     archivo.close();
 }
 
-// --- FUNCIONES DE ELIMINACIÓN (CRUD - DELETE) ---
-
 void eliminarCliente(vector<Cliente> &listaClientes)
 {
-    int idBuscar;
+    string entradaId;
     cout << "\n--- Eliminar Cliente ---" << endl;
     cout << "Ingrese la cedula del cliente que desea eliminar: ";
-    cin >> idBuscar;
-    cin.ignore();
+    getline(cin, entradaId);
 
+    if (!esNumeroValido(entradaId))
+    {
+        cout << ROJO << "¡ERROR: Cedula invalida!" << RESET << endl;
+        return;
+    }
+    int idBuscar = stoi(entradaId);
 
     for (size_t i = 0; i < listaClientes.size(); i++)
     {
         if (listaClientes[i].id == idBuscar)
         {
-           
             listaClientes.erase(listaClientes.begin() + i);
-            cout << "¡Cliente con cedula " << idBuscar << " eliminado exitosamente de la memoria!" << endl;
-            return; 
+            cout << VERDE << "¡Cliente con cedula " << idBuscar << " eliminado exitosamente!" << RESET << endl;
+            return;
         }
     }
-    cout << "¡ERROR: No se encontro ningun cliente con la cedula " << idBuscar << "!" << endl;
+    cout << ROJO << "¡ERROR: No se encontro ningun cliente con la cedula " << idBuscar << "!" << RESET << endl;
 }
-
 
 void eliminarVehiculo(vector<Vehiculo> &listaVehiculos)
 {
@@ -389,46 +502,55 @@ void eliminarVehiculo(vector<Vehiculo> &listaVehiculos)
         if (listaVehiculos[i].placa == placaBuscar)
         {
             listaVehiculos.erase(listaVehiculos.begin() + i);
-            cout << "¡Vehiculo con placa " << placaBuscar << " eliminado exitosamente!" << endl;
+            cout << VERDE << "¡Vehiculo con placa " << placaBuscar << " eliminado exitosamente!" << RESET << endl;
             return;
         }
     }
-    cout << "¡ERROR: No se encontro ningun vehiculo con la placa " << placaBuscar << "!" << endl;
+    cout << ROJO << "¡ERROR: No se encontro ningun vehiculo con la placa " << placaBuscar << "!" << RESET << endl;
 }
-
 
 void eliminarLavador(vector<Lavador> &listaLavadores)
 {
-    int idBuscar;
+    string entradaId;
     cout << "\n--- Eliminar Lavador ---" << endl;
     cout << "Ingrese el ID del lavador que desea eliminar: ";
-    cin >> idBuscar;
-    cin.ignore();
+    getline(cin, entradaId);
+
+    if (!esNumeroValido(entradaId))
+    {
+        cout << ROJO << "¡ERROR: ID invalido!" << RESET << endl;
+        return;
+    }
+    int idBuscar = stoi(entradaId);
 
     for (size_t i = 0; i < listaLavadores.size(); i++)
     {
         if (listaLavadores[i].id == idBuscar)
         {
             listaLavadores.erase(listaLavadores.begin() + i);
-            cout << "¡Lavador con ID " << idBuscar << " eliminado exitosamente!" << endl;
+            cout << VERDE << "¡Lavador con ID " << idBuscar << " eliminado exitosamente!" << RESET << endl;
             return;
         }
     }
-    cout << "¡ERROR: No se encontro ningun lavador con el ID " << idBuscar << "!" << endl;
+    cout << ROJO << "¡ERROR: No se encontro ningun lavador con el ID " << idBuscar << "!" << RESET << endl;
 }
-
-// --- FUNCIONES DE MODIFICACIÓN (CRUD - UPDATE) ---
 
 void modificarCliente(vector<Cliente> &listaClientes)
 {
     limpiarPantalla();
-    int idBuscar;
+    string entradaId;
     cout << CYAN << "========================================" << RESET << endl;
     cout << CYAN << "           MODIFICAR CLIENTE            " << RESET << endl;
     cout << CYAN << "========================================" << RESET << endl;
     cout << "Ingrese la cedula del cliente a modificar: ";
-    cin >> idBuscar;
-    cin.ignore();
+    getline(cin, entradaId);
+
+    if (!esNumeroValido(entradaId))
+    {
+        cout << ROJO << "¡ERROR: Cedula invalida!" << RESET << endl;
+        return;
+    }
+    int idBuscar = stoi(entradaId);
 
     for (size_t i = 0; i < listaClientes.size(); i++)
     {
@@ -437,12 +559,22 @@ void modificarCliente(vector<Cliente> &listaClientes)
             cout << AMARILLO << "\nDatos actuales -> Nombre: " << listaClientes[i].nombre
                  << " | Tel: " << listaClientes[i].telefono << RESET << endl;
 
-            cout << "\nIngrese el NUEVO Nombre Completo: ";
-            getline(cin, listaClientes[i].nombre);
+            string nuevoNombre;
+            do
+            {
+                cout << "\nIngrese el NUEVO Nombre Completo (Solo letras): ";
+                getline(cin, nuevoNombre);
+                if (!esTextoValido(nuevoNombre))
+                {
+                    cout << ROJO << "¡ERROR: El nombre no puede tener numeros!" << RESET << endl;
+                }
+            } while (!esTextoValido(nuevoNombre));
+
+            listaClientes[i].nombre = nuevoNombre;
             cout << "Ingrese el NUEVO Telefono: ";
             getline(cin, listaClientes[i].telefono);
 
-            cout << VERDE << "\n¡Cliente modificado exitosamente en memoria!" << RESET << endl;
+            cout << VERDE << "\n¡Cliente modificado exitosamente!" << RESET << endl;
             return;
         }
     }
@@ -466,12 +598,20 @@ void modificarVehiculo(vector<Vehiculo> &listaVehiculos, const vector<Cliente> &
             cout << AMARILLO << "\nDatos actuales -> Modelo: " << listaVehiculos[i].modelo
                  << " | Color: " << listaVehiculos[i].color << " | CI Dueño: " << listaVehiculos[i].idDueno << RESET << endl;
 
+            string entradaNuevoId;
             int nuevoIdDueno;
-            cout << "\nIngrese la CI del NUEVO Dueño: ";
-            cin >> nuevoIdDueno;
-            cin.ignore();
+            do
+            {
+                cout << "\nIngrese la CI del NUEVO Dueño (Solo numeros): ";
+                getline(cin, entradaNuevoId);
+                if (!esNumeroValido(entradaNuevoId))
+                {
+                    cout << ROJO << "¡ERROR: La cedula debe ser numerica!" << RESET << endl;
+                }
+            } while (!esNumeroValido(entradaNuevoId));
 
-          
+            nuevoIdDueno = stoi(entradaNuevoId);
+
             if (!existeCliente(listaClientes, nuevoIdDueno))
             {
                 cout << ROJO << "¡ERROR: La cedula del cliente " << nuevoIdDueno << " no existe. Modificacion cancelada!" << RESET << endl;
@@ -494,13 +634,19 @@ void modificarVehiculo(vector<Vehiculo> &listaVehiculos, const vector<Cliente> &
 void modificarLavador(vector<Lavador> &listaLavadores)
 {
     limpiarPantalla();
-    int idBuscar;
+    string entradaId;
     cout << CYAN << "========================================" << RESET << endl;
     cout << CYAN << "           MODIFICAR LAVADOR            " << RESET << endl;
     cout << CYAN << "========================================" << RESET << endl;
     cout << "Ingrese el ID del lavador a modificar: ";
-    cin >> idBuscar;
-    cin.ignore();
+    getline(cin, entradaId);
+
+    if (!esNumeroValido(entradaId))
+    {
+        cout << ROJO << "¡ERROR: ID invalido!" << RESET << endl;
+        return;
+    }
+    int idBuscar = stoi(entradaId);
 
     for (size_t i = 0; i < listaLavadores.size(); i++)
     {
@@ -508,14 +654,201 @@ void modificarLavador(vector<Lavador> &listaLavadores)
         {
             cout << AMARILLO << "\nDatos actuales -> Nombre: " << listaLavadores[i].nombre << RESET << endl;
 
-            cout << "\nIngrese el NUEVO Nombre del Lavador: ";
-            getline(cin, listaLavadores[i].nombre);
+            string nuevoNombre;
+            do
+            {
+                cout << "\nIngrese el NUEVO Nombre del Lavador (Solo letras): ";
+                getline(cin, nuevoNombre);
+                if (!esTextoValido(nuevoNombre))
+                {
+                    cout << ROJO << "¡ERROR: El nombre no puede tener numeros!" << RESET << endl;
+                }
+            } while (!esTextoValido(nuevoNombre));
 
+            listaLavadores[i].nombre = nuevoNombre;
             cout << VERDE << "\n¡Lavador modificado exitosamente!" << RESET << endl;
             return;
         }
     }
     cout << ROJO << "\n¡ERROR: No se encontro ningun lavador con el ID " << idBuscar << "!" << RESET << endl;
+}
+
+string extraerValorJSON(string linea, bool esNumero = false)
+{
+    size_t posicionDosPuntos = linea.find(':');
+    if (posicionDosPuntos == string::npos)
+        return "";
+
+    string parteValor = linea.substr(posicionDosPuntos + 1);
+
+    if (!esNumero)
+    {
+        size_t primeraComilla = parteValor.find('"');
+        size_t ultimaComilla = parteValor.rfind('"');
+        if (primeraComilla != string::npos && ultimaComilla != string::npos && primeraComilla != ultimaComilla)
+        {
+            return parteValor.substr(primeraComilla + 1, ultimaComilla - primeraComilla - 1);
+        }
+    }
+    else
+    {
+        string limpio = "";
+        for (size_t i = 0; i < parteValor.length(); i++)
+        {
+            char c = parteValor[i];
+            if (isdigit(c) || c == '.' || c == '-')
+            {
+                limpio += c;
+            }
+        }
+        return limpio;
+    }
+    return "";
+}
+
+void cargarMasivaClientes(vector<Cliente> &listaClientes)
+{
+    ifstream archivo("carga_clientes.json");
+    if (!archivo.is_open())
+    {
+        cout << ROJO << "\n[ERROR] No se pudo abrir el archivo 'carga_clientes.json'" << RESET << endl;
+        return;
+    }
+
+    string linea;
+    Cliente c;
+    int cont = 0;
+
+    while (getline(archivo, linea))
+    {
+        if (linea.find("\"id\"") != string::npos)
+        {
+            string val = extraerValorJSON(linea, true);
+            c.id = val.empty() ? 0 : stoi(val);
+        }
+        else if (linea.find("\"nombre\"") != string::npos)
+        {
+            c.nombre = extraerValorJSON(linea, false);
+        }
+        else if (linea.find("\"telefono\"") != string::npos)
+        {
+            c.telefono = extraerValorJSON(linea, false);
+            listaClientes.push_back(c);
+            cont++;
+        }
+    }
+    archivo.close();
+    cout << VERDE << "\n[OK] ¡Carga masiva finalizada! Se importaron " << cont << " clientes." << RESET << endl;
+}
+
+void cargarMasivaVehiculos(vector<Vehiculo> &listaVehiculos)
+{
+    ifstream archivo("carga_vehiculos.json");
+    if (!archivo.is_open())
+    {
+        cout << ROJO << "\n[ERROR] No se pudo abrir el archivo 'carga_vehiculos.json'" << RESET << endl;
+        return;
+    }
+
+    string linea;
+    Vehiculo v;
+    int cont = 0;
+
+    while (getline(archivo, linea))
+    {
+        if (linea.find("\"placa\"") != string::npos)
+        {
+            v.placa = extraerValorJSON(linea, false);
+        }
+        else if (linea.find("\"modelo\"") != string::npos)
+        {
+            v.modelo = extraerValorJSON(linea, false);
+        }
+        else if (linea.find("\"color\"") != string::npos)
+        {
+            v.color = extraerValorJSON(linea, false);
+        }
+        else if (linea.find("\"idDueno\"") != string::npos)
+        {
+            string val = extraerValorJSON(linea, true);
+            v.idDueno = val.empty() ? 0 : stoi(val);
+            listaVehiculos.push_back(v);
+            cont++;
+        }
+    }
+    archivo.close();
+    cout << VERDE << "\n[OK] ¡Carga masiva finalizada! Se importaron " << cont << " vehiculos." << RESET << endl;
+}
+
+void cargarMasivaLavadores(vector<Lavador> &listaLavadores)
+{
+    ifstream archivo("carga_lavadores.json");
+    if (!archivo.is_open())
+    {
+        cout << ROJO << "\n[ERROR] No se pudo abrir el archivo 'carga_lavadores.json'" << RESET << endl;
+        return;
+    }
+
+    string linea;
+    Lavador l;
+    int cont = 0;
+
+    while (getline(archivo, linea))
+    {
+        if (linea.find("\"id\"") != string::npos)
+        {
+            string val = extraerValorJSON(linea, true);
+            l.id = val.empty() ? 0 : stoi(val);
+        }
+        else if (linea.find("\"nombre\"") != string::npos)
+        {
+            l.nombre = extraerValorJSON(linea, false);
+            listaLavadores.push_back(l);
+            cont++;
+        }
+    }
+    archivo.close();
+    cout << VERDE << "\n[OK] ¡Carga masiva finalizada! Se importaron " << cont << " lavadores." << RESET << endl;
+}
+
+void cargarMasivaServicios(vector<Servicio> &listaServicios)
+{
+    ifstream archivo("carga_servicios.json");
+    if (!archivo.is_open())
+    {
+        cout << ROJO << "\n[ERROR] No se pudo abrir el archivo 'carga_servicios.json'" << RESET << endl;
+        return;
+    }
+
+    string linea;
+    Servicio s;
+    int cont = 0;
+
+    while (getline(archivo, linea))
+    {
+        if (linea.find("\"fecha\"") != string::npos)
+        {
+            s.fecha = extraerValorJSON(linea, false);
+        }
+        else if (linea.find("\"placaVehiculo\"") != string::npos)
+        {
+            s.placaVehiculo = extraerValorJSON(linea, false);
+        }
+        else if (linea.find("\"idLavador\"") != string::npos)
+        {
+            string val = extraerValorJSON(linea, true);
+            s.idLavador = val.empty() ? 0 : stoi(val);
+        }
+        else if (linea.find("\"costo\"") != string::npos)
+        {
+            string val = extraerValorJSON(linea, true);
+            s.costo = val.empty() ? 0.0f : stof(val);
+            listaServicios.push_back(s);
+            cont++;
+        }
+    }
+    archivo.close();
+    cout << VERDE << "\n[OK] ¡Carga masiva finalizada! Se importaron " << cont << " registros de lavado." << RESET << endl;
 }
 
 #endif

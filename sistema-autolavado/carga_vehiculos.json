@@ -1,0 +1,20 @@
+[
+  {
+    "placa": "ABC123D",
+    "modelo": "Toyota Corolla",
+    "color": "Blanco",
+    "idDueno": 12654345
+  },
+  {
+    "placa": "XYZ789M",
+    "modelo": "Chevrolet Aveo",
+    "color": "Gris",
+    "idDueno": 8765543
+  },
+  {
+    "placa": "LMN456P",
+    "modelo": "Honda Civic",
+    "color": "Negro",
+    "idDueno": 9876543
+  }
+]

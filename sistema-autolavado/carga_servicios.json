@@ -1,0 +1,20 @@
+[
+  {
+    "fecha": "15/06/2026",
+    "placaVehiculo": "ABC123D",
+    "idLavador": 10,
+    "costo": 15.50
+  },
+  {
+    "fecha": "15/06/2026",
+    "placaVehiculo": "XYZ789M",
+    "idLavador": 999,
+    "costo": 20.00
+  },
+  {
+    "fecha": "15/06/2026",
+    "placaVehiculo": "LMN456P",
+    "idLavador": 11,
+    "costo": 18.75
+  }
+]
